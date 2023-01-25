@@ -1,48 +1,47 @@
 package com.Metersdata.springboot.service;
-import com.Metersdata.springboot.configuration.KillBill.Api.UsageApiConfiguration;
+import com.Metersdata.springboot.configuration.KillBill.Api.KillBillApiProperties;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import org.asynchttpclient.Response;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.killbill.billing.client.KillBillClientException;
 import org.killbill.billing.client.KillBillHttpClient;
 import org.killbill.billing.client.RequestOptions;
+import org.killbill.billing.client.api.gen.AccountApi;
 import org.killbill.billing.client.api.gen.UsageApi;
-import org.killbill.billing.client.model.gen.SubscriptionUsageRecord;
-import org.killbill.billing.client.model.gen.UnitUsageRecord;
-import org.killbill.billing.client.model.gen.UsageRecord;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
+import org.killbill.billing.client.model.gen.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.killbill.billing.client.api.gen.InvoiceApi;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 @Service
 public class UsageService {
     private final KillBillHttpClient killBillClient;
-    private final UsageApiConfiguration usageApiConfiguration;
+    private final KillBillApiProperties apiProperties;
     UsageApi usageApi;
-
-    public UsageService(KillBillHttpClient killBillClient,UsageApiConfiguration usageApiConfiguration) {
+    InvoiceApi invoiceApi;
+    AccountApi accountApi;
+    //zero to return the first and the only one
+    int FIRST_ITEM=0;
+    public UsageService(KillBillHttpClient killBillClient, KillBillApiProperties apiProperties) {
         this.killBillClient = killBillClient;
-        this.usageApiConfiguration = usageApiConfiguration;
+        this.apiProperties = apiProperties;
         usageApi= new UsageApi(killBillClient);
-
+        invoiceApi= new InvoiceApi(killBillClient);
+        accountApi=new AccountApi(killBillClient);
     }
 
-    @Scheduled(fixedRate = 3000000)
+    @Scheduled(fixedRate = 3000)
     public void sendUsageRecord() throws KillBillClientException {
 
        SubscriptionUsageRecord subscriptionUsageRecord= dummyUsageRecord(UUID.fromString("c4ac5d96-fdfe-45f5-8f5c-d46794e5364f"));
-
-
-            System.out.println(""+recordUsage(subscriptionUsageRecord, usageApiConfiguration.getRequestOptions()));
-
-
+       if(recordUsage(subscriptionUsageRecord, apiProperties.getRequestOptions())==null){
+               System.out.print("failed to add usage record");
+           }
     }
 
     public SubscriptionUsageRecord dummyUsageRecord(UUID subId) {
@@ -65,12 +64,13 @@ public class UsageService {
         inputOptionsBuilder.withHeader(KillBillHttpClient.HTTP_HEADER_ACCEPT, "application/json");
         inputOptionsBuilder.withHeader(KillBillHttpClient.HTTP_HEADER_CONTENT_TYPE, "application/json");
         final RequestOptions requestOptions = inputOptionsBuilder.build();
-        System.out.println(inputOptions.getTenantApiKey()+" /"+ inputOptions.getTenantApiSecret());
        return killBillClient.doPost(uri, body, requestOptions);
     }
 
-
-
+    public RolledUpUsage getUsageApi(final UUID accountId, LocalDate startDate, LocalDate endDate) throws KillBillClientException {
+        Bundle bundle= accountApi.getAccountBundles(accountId,null,null, apiProperties.getRequestOptions()).get(FIRST_ITEM);//zero to return the first and the only one
+        return (bundle==null)? null:usageApi.getUsage(bundle.getSubscriptions().get(FIRST_ITEM).getSubscriptionId(),"kWh",startDate,endDate, apiProperties.getRequestOptions());
+    }
 }
 
 

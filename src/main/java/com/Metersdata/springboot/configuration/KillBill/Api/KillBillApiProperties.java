@@ -1,13 +1,11 @@
 package com.Metersdata.springboot.configuration.KillBill.Api;
 
-import org.killbill.billing.client.KillBillHttpClient;
 import org.killbill.billing.client.RequestOptions;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class UsageApiConfiguration {
+public class KillBillApiProperties {
 
     @Value("${killbill.api.key}")
     private String apiKey;
