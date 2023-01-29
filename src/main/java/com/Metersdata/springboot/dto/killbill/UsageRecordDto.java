@@ -1,10 +1,10 @@
-package com.Metersdata.springboot.request;
+package com.Metersdata.springboot.dto.killbill;
 
 import org.joda.time.LocalDate;
 
 import java.util.UUID;
 
-public class UsageRecordRequest {
+public class UsageRecordDto {
 
     UUID accountId;
     LocalDate startDate;

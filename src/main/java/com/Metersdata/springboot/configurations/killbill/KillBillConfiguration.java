@@ -1,4 +1,4 @@
-package com.Metersdata.springboot.configuration;
+package com.Metersdata.springboot.configurations.killbill;
 
 import org.killbill.billing.client.KillBillHttpClient;
 import org.springframework.beans.factory.annotation.Value;

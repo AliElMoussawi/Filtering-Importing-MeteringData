@@ -1,7 +1,7 @@
-package com.Metersdata.springboot.controller;
+package com.Metersdata.springboot.controllers.killbill;
 
-import com.Metersdata.springboot.request.UsageRecordRequest;
-import com.Metersdata.springboot.service.UsageService;
+import com.Metersdata.springboot.dto.killbill.UsageRecordDto;
+import com.Metersdata.springboot.services.killbill.UsageService;
 import org.killbill.billing.client.model.gen.RolledUpUsage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,7 +20,7 @@ public class UsageController {
     UsageService usageService;
 
     @RequestMapping(method = RequestMethod.POST, value = "/")
-    public ResponseEntity< RolledUpUsage> getUsagebyId(@RequestBody UsageRecordRequest usageRecordRequest) throws Exception {
+    public ResponseEntity< RolledUpUsage> getUsagebyId(@RequestBody UsageRecordDto usageRecordRequest) throws Exception {
         RolledUpUsage usageRecord=usageService.getUsageApi(usageRecordRequest.getAccountId(),usageRecordRequest.getStartDate(),usageRecordRequest.getEndDate());
         return (usageRecord==null)? null: new ResponseEntity<>(usageRecord, HttpStatus.OK);
     }

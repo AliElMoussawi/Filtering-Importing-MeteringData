@@ -1,5 +1,5 @@
-package com.Metersdata.springboot.service;
-import com.Metersdata.springboot.configuration.KillBill.Api.KillBillApiProperties;
+package com.Metersdata.springboot.services.killbill;
+import com.Metersdata.springboot.configurations.killbill.property.KillBillApiProperties;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import org.asynchttpclient.Response;
@@ -35,7 +35,7 @@ public class UsageService {
         accountApi=new AccountApi(killBillClient);
     }
 
-    @Scheduled(fixedRate = 3000)
+    //@Scheduled(fixedRate = 3000)
     public void sendUsageRecord() throws KillBillClientException {
 
        SubscriptionUsageRecord subscriptionUsageRecord= dummyUsageRecord(UUID.fromString("c4ac5d96-fdfe-45f5-8f5c-d46794e5364f"));

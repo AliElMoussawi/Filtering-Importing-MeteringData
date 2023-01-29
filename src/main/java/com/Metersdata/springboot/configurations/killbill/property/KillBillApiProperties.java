@@ -1,4 +1,4 @@
-package com.Metersdata.springboot.configuration.KillBill.Api;
+package com.Metersdata.springboot.configurations.killbill.property;
 
 import org.killbill.billing.client.RequestOptions;
 import org.springframework.beans.factory.annotation.Value;
