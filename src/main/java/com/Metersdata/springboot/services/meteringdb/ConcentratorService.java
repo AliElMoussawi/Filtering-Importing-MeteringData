@@ -23,9 +23,4 @@ public class ConcentratorService {
         return concentratorRepository.insert(concentrator);
     }
 
-    @Cacheable(value = "dcuCache")
-    public List<Concentrator> findAll(){
-        return concentratorRepository.findAll();
-    }
-
 }

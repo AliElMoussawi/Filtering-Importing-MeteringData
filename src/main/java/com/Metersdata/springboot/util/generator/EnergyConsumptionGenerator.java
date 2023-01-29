@@ -20,9 +20,9 @@ public class EnergyConsumptionGenerator {
 
     private final Random random = new Random();
 
-    public EnergyConsumptionData generateData() {
+    public EnergyConsumptionData generateData(String id) {
         EnergyConsumptionData data = new EnergyConsumptionData();
-        data.setSmartMeterId(UUID.randomUUID().toString());//fix this one
+        data.setSmartMeterId(id);
         data.setEventTime(System.currentTimeMillis());
         data.setProcessTime(System.currentTimeMillis());
         data.setTimeZone("UTC");

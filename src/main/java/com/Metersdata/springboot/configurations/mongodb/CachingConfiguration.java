@@ -12,13 +12,13 @@ import java.util.Arrays;
 
 @EnableCaching
 @Configuration
-@CacheConfig(cacheNames = { "dcuCache" })
-public class CachingConfig {
+@CacheConfig(cacheNames = { "SmartMeterDCUCache" })
+public class CachingConfiguration {
 
     @Bean
     public CacheManager cacheManager() {
         SimpleCacheManager cacheManager = new SimpleCacheManager();
-        cacheManager.setCaches(Arrays.asList(new ConcurrentMapCache("dcuCache")));
+        cacheManager.setCaches(Arrays.asList(new ConcurrentMapCache("SmartMeterDCUCache")));
         return cacheManager;
     }
 }

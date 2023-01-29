@@ -1,9 +1,12 @@
 package com.Metersdata.springboot.model;
 
+import com.mongodb.lang.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.checkerframework.common.aliasing.qual.Unique;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Unwrapped;
 
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -18,8 +21,11 @@ public class SmartMeterConcentrator {
     private UUID id;
 
     @OneToMany
+    @Nullable
     private Concentrator concentrator;
-    @OneToOne
-    private SmartMeter smartMeter;
+
+    @Unique
+    @Nullable
+    private UUID smartMeterId;
 
 }
