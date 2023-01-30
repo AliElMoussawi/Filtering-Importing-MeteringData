@@ -17,8 +17,8 @@ public class SmartMeterConcentratorService {
     @Autowired(required = true)
     SmartMeterConcentratorRepository smartMeterConcentratorRepository;
 
-    public SmartMeterConcentrator createSmartMeterConcentrator(Concentrator concentrator,UUID smartMeterId){
-        SmartMeterConcentrator smartMeterConcentrator=new SmartMeterConcentrator(UUID.randomUUID(),concentrator,smartMeterId);
+    public SmartMeterConcentrator createSmartMeterConcentrator(UUID concentratorId,UUID smartMeterId){
+        SmartMeterConcentrator smartMeterConcentrator=new SmartMeterConcentrator(UUID.randomUUID(),concentratorId,smartMeterId);
         return smartMeterConcentratorRepository.insert(smartMeterConcentrator);
     }
 

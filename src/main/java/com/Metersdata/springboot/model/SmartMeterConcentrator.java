@@ -22,7 +22,7 @@ public class SmartMeterConcentrator {
 
     @OneToMany
     @Nullable
-    private Concentrator concentrator;
+    private UUID concentratorId;
 
     @Unique
     @Nullable
