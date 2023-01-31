@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +57,7 @@ public class SmartMeterService {
 
     // will generate dummy data for each smart meter in parallel with handling error and retries for the failed requests;
     @Scheduled(fixedRate = 120000)
+    @Async
     public void createMetersData() {
         List<String> smartMeterIds = findAllSmartMeterIds();
         Map<String, Integer> retryAttempts = new HashMap<>();

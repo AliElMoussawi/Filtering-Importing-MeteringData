@@ -71,6 +71,8 @@ public class UsageService {
         Bundle bundle= accountApi.getAccountBundles(accountId,null,null, apiProperties.getRequestOptions()).get(FIRST_ITEM);//zero to return the first and the only one
         return (bundle==null)? null:usageApi.getUsage(bundle.getSubscriptions().get(FIRST_ITEM).getSubscriptionId(),"kWh",startDate,endDate, apiProperties.getRequestOptions());
     }
+
+
 }
 
 

@@ -1,21 +1,24 @@
 package com.Metersdata.springboot.configurations.killbill;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-
-import org.killbill.billing.client.model.gen.Subscription;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.concurrent.ConcurrentMapCache;
+import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
-
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Arrays;
 
-import java.util.concurrent.TimeUnit;
-
+@EnableCaching
 @Configuration
+@CacheConfig(cacheNames = { "SubscriptionExternalKeyCache" })
 public class CacheConfiguration {
 
     @Bean
-    public Cache<String, Subscription> subscriptionCache() {
-        return Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build();
+    public CacheManager cacheManager() {
+        SimpleCacheManager cacheManager = new SimpleCacheManager();
+        cacheManager.setCaches(Arrays.asList(new ConcurrentMapCache("SubscriptionExternalKeyCache")));
+        return cacheManager;
     }
 }
