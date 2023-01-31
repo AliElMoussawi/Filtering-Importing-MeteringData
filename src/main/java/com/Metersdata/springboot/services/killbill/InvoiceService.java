@@ -14,7 +14,6 @@ public class InvoiceService {
     InvoiceApi invoiceApi;
     AccountApi accountApi;
 
-    int FIRST_ITEM=0;
     public InvoiceService(KillBillHttpClient killBillClient, KillBillApiProperties apiProperties) {
         this.killBillClient = killBillClient;
         this.apiProperties = apiProperties;
