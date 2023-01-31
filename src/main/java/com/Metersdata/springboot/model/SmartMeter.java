@@ -12,15 +12,15 @@ import javax.persistence.GenerationType;
 import java.util.UUID;
 @Data
 @AllArgsConstructor
-@Document("Meter-S01")
-public class SmartMeter {
+@Document("Meter_S01")
+public class SmartMeter {//we have issue with the id auto generator and fixing this issue, create a relation between id and eveternal key ,
      @Id
-     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private UUID id;
 
      private EnergyConsumptionData energyConsumptionData;
 
      public SmartMeter(EnergyConsumptionData energyConsumptionData){
+         this.id=UUID.randomUUID();
          this.energyConsumptionData=energyConsumptionData;
      }
 

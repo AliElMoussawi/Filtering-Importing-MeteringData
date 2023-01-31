@@ -22,8 +22,9 @@ public class ConcentratorController {
     ConcentratorService concentratorService;
 
     @RequestMapping(method = RequestMethod.POST, value = "/")
-    public Concentrator createConcentrator() throws Exception {
-        return concentratorService.createConcentrator();
+    public ResponseEntity<Concentrator> createConcentrator() throws Exception {
+        Concentrator concentrator=concentratorService.createConcentrator();
+        return (concentrator==null)? null: new ResponseEntity<>(concentrator, HttpStatus.OK);
     }
 
 

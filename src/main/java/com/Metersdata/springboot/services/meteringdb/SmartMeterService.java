@@ -55,7 +55,7 @@ public class SmartMeterService {
     }
 
     // will generate dummy data for each smart meter in parallel with handling error and retries for the failed requests;
-    //@Scheduled(fixedRate = 120000)
+    @Scheduled(fixedRate = 120000)
     public void createMetersData() {
         List<String> smartMeterIds = findAllSmartMeterIds();
         Map<String, Integer> retryAttempts = new HashMap<>();
