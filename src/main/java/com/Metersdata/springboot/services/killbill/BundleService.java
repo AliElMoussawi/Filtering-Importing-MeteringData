@@ -21,11 +21,9 @@ public class BundleService {
     private final KillBillApiProperties apiProperties;
     BundleApi bundleApi;
     private final KillBillHttpClient killBillClient;
-    private final Cache<String, Subscription> subscriptionCache;
 
-    public BundleService(KillBillHttpClient  killBillClient, Cache<String, Subscription> subscriptionCache, KillBillApiProperties apiProperties) {
+    public BundleService(KillBillHttpClient  killBillClient, KillBillApiProperties apiProperties) {
         this.killBillClient = killBillClient;
-        this.subscriptionCache = subscriptionCache;
         bundleApi=new BundleApi(killBillClient);
         this.apiProperties=apiProperties;
     }

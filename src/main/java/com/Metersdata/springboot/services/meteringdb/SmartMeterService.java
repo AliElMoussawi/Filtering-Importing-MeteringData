@@ -4,19 +4,20 @@ import com.Metersdata.springboot.dao.SmartMeterConcentratorRepository;
 import com.Metersdata.springboot.dao.SmartMeterRepository;
 import com.Metersdata.springboot.model.SmartMeter;
 import com.Metersdata.springboot.model.SmartMeterConcentrator;
+import com.Metersdata.springboot.services.killbill.UsageService;
 import com.Metersdata.springboot.util.generator.EnergyConsumptionGenerator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.killbill.billing.client.KillBillClientException;
+import org.killbill.billing.client.model.gen.UsageRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.mongodb.core.query.Collation;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -30,7 +31,6 @@ public class SmartMeterService {
     SmartMeterConcentratorRepository smartMeterConcentratorRepository;
     @Autowired(required = true)
     SmartMeterRepository smartMeterRepository;
-
 
     private final Executor executor;
 
@@ -58,7 +58,7 @@ public class SmartMeterService {
     // will generate dummy data for each smart meter in parallel with handling error and retries for the failed requests;
     @Scheduled(fixedRate = 120000)
     @Async
-    public void createMetersData() {
+    public void createMetersData() throws KillBillClientException {
         List<String> smartMeterIds = findAllSmartMeterIds();
         Map<String, Integer> retryAttempts = new HashMap<>();
 
@@ -87,8 +87,11 @@ public class SmartMeterService {
                 }
             });
         }
+
     }
 
-
+    public SmartMeter returnByMeterId(String meterId){
+        return smartMeterRepository.findByEnergyConsumptionDataSmartMeterIdNotIn(meterId, );
+    }
 
 }

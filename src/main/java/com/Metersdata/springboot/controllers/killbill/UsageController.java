@@ -1,6 +1,6 @@
 package com.Metersdata.springboot.controllers.killbill;
 
-import com.Metersdata.springboot.dto.killbill.UsageRecordDto;
+import com.Metersdata.springboot.dto.killbill.UsageRecordRequestDto;
 import com.Metersdata.springboot.services.killbill.UsageService;
 import org.killbill.billing.client.model.gen.RolledUpUsage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ public class UsageController {
     UsageService usageService;
 
     @RequestMapping(method = RequestMethod.POST, value = "/")
-    public ResponseEntity< RolledUpUsage> getUsagebyId(@RequestBody UsageRecordDto usageRecordRequest) throws Exception {
+    public ResponseEntity< RolledUpUsage> getUsagebyId(@RequestBody UsageRecordRequestDto usageRecordRequest) throws Exception {
         RolledUpUsage usageRecord=usageService.getUsageApi(usageRecordRequest.getAccountId(),usageRecordRequest.getStartDate(),usageRecordRequest.getEndDate());
         return (usageRecord==null)? null: new ResponseEntity<>(usageRecord, HttpStatus.OK);
     }
