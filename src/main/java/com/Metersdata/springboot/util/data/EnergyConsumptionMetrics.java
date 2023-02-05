@@ -1,6 +1,5 @@
 package com.Metersdata.springboot.util.data;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 

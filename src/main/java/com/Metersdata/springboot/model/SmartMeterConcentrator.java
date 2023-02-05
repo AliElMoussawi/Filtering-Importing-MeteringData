@@ -19,7 +19,6 @@ import java.util.UUID;
 public class SmartMeterConcentrator {
     @Id
     private UUID id;
-
     @OneToMany
     @Nullable
     private UUID concentratorId;
