@@ -39,7 +39,7 @@ public class testingController {
         List<MeteringData> meteringDataList = smartMeterService.returnByMeterId(id.getId());
         return new ResponseEntity<>(meteringDataList, HttpStatus.OK);
     }
-    @RequestMapping(method = RequestMethod.GET, value = "/t-KillBill")
+    @RequestMapping(method = RequestMethod.GET, value = "/meterId_KillBill")
     public ResponseEntity<Map<String ,UUID>> getMeterIdFromKillBill() throws Exception {
         Map<String ,UUID> subcriptionsMeterId=bundleService.getExternalKeySubscription();
         return new ResponseEntity<>(subcriptionsMeterId, HttpStatus.OK);

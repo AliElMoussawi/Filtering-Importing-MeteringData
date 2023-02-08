@@ -11,12 +11,12 @@ public class EnergyConsumptionGenerator {
     private static final int MAX_VOLTAGE = 120;
     private static final double MIN_CURRENT = 0.5;
     private static final double MAX_CURRENT = 2.0;
-    private static final double MIN_POWER = 50;
-    private static final double MAX_POWER = 200;
+    private static final double MIN_POWER = 2;
+    private static final double MAX_POWER = 10;
     private static final double MIN_FREQUENCY = 59;
     private static final double MAX_FREQUENCY = 61;
     private static final double MIN_ENERGY = 0;
-    private static final double MAX_ENERGY = 500;
+    private static final double MAX_ENERGY = 20;
 
     private final Random random = new Random();
 

@@ -13,6 +13,9 @@ public class MeteringDataConcentratorService {
     MeteringDataConcentratorRepository meteringDataConcentratorRepository;
 
     public SmartMeterConcentrator createSmartMeterConcentrator(UUID concentratorId,UUID smartMeterId){
+        if(meteringDataConcentratorRepository.existsBySmartMeterId(smartMeterId)){
+            return null;
+        }
         SmartMeterConcentrator smartMeterConcentrator=new SmartMeterConcentrator(UUID.randomUUID(),concentratorId,smartMeterId);
         return meteringDataConcentratorRepository.insert(smartMeterConcentrator);
     }

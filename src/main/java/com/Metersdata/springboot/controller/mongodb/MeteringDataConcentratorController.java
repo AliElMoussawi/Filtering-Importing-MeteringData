@@ -18,6 +18,7 @@ public class MeteringDataConcentratorController {
     @RequestMapping(method = RequestMethod.POST, value = "/")
     public ResponseEntity<SmartMeterConcentrator> createConcentrator(@RequestBody @NotNull SmartMeterConcentratorDto smartMeterConcentratorDto) throws Exception {
         SmartMeterConcentrator smartMeterConcentrator = meteringDataConcentratorService.createSmartMeterConcentrator(smartMeterConcentratorDto.getConcentratorId(),smartMeterConcentratorDto.getSmartMeterId());
-        return (smartMeterConcentrator == null) ? null : new ResponseEntity<>(smartMeterConcentrator, HttpStatus.OK);
+       if(smartMeterConcentrator == null) return new ResponseEntity<>(smartMeterConcentrator,HttpStatus.ALREADY_REPORTED);
+       return new ResponseEntity<>(smartMeterConcentrator,HttpStatus.OK);
     }
 }

@@ -8,6 +8,7 @@ import com.Metersdata.springboot.model.SmartMeterConcentrator;
 import com.Metersdata.springboot.util.generator.EnergyConsumptionGenerator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
@@ -96,6 +97,7 @@ public class MeteringDataService {
            //     .collect(Collectors.toList());
     }
     public MeteringData insertMeteringData(SmartMeter smartMeter){
+
         MeteringData meteringData=new MeteringData();
         meteringData.setId(UUID.randomUUID());
         meteringData.setSmartMeterId(smartMeter.getEnergyConsumptionData().getSmartMeterId());
@@ -104,8 +106,8 @@ public class MeteringDataService {
         meteringData.setPowerTotal(smartMeter.getEnergyConsumptionData().getMetrics().getPowerTotal());
         meteringData.setEnergyTotalPos(smartMeter.getEnergyConsumptionData().getMetrics().getEnergyTotalPos());
         meteringData.setEnergyTotalNeg(smartMeter.getEnergyConsumptionData().getMetrics().getEnergyTotalNeg());
-        meteringData.setEventTime(smartMeter.getEnergyConsumptionData().getEventTime());
-        meteringData.setProcessTime(smartMeter.getEnergyConsumptionData().getProcessTime());
+        meteringData.setEventTime(new DateTime(smartMeter.getEnergyConsumptionData().getEventTime()));
+        meteringData.setProcessTime(new DateTime(smartMeter.getEnergyConsumptionData().getProcessTime()));
         meteringData.setRetrieved(false);
         return meteringDataRepository.insert(meteringData);
     }

@@ -16,6 +16,7 @@ import org.killbill.billing.client.KillBillHttpClient;
 import org.killbill.billing.client.RequestOptions;
 import org.killbill.billing.client.api.gen.AccountApi;
 import org.killbill.billing.client.api.gen.UsageApi;
+import org.killbill.billing.client.model.Bundles;
 import org.killbill.billing.client.model.gen.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -53,26 +54,7 @@ public class UsageService {
         usageApi= new UsageApi(killBillClient);
         accountApi=new AccountApi(killBillClient);
     }
-    /*
-      //@Scheduled(fixedRate = 3000)
-      public void sendUsageRecord() throws KillBillClientException {
-       /* SubscriptionUsageRecord subscriptionUsageRecord= dummyUsageRecord(UUID.fromString("c4ac5d96-fdfe-45f5-8f5c-d46794e5364f"));
-         if(recordUsage(subscriptionUsageRecord, apiProperties.getRequestOptions())==null){
-                 System.out.print("failed to add usage record");
-             }
-      }
 
-      public SubscriptionUsageRecord dummyUsageRecord(UUID subId) {
-          SubscriptionUsageRecord subscriptionUsageRecord = new SubscriptionUsageRecord();
-          subscriptionUsageRecord.setSubscriptionId(subId);
-          UnitUsageRecord unitUsageRecord = new UnitUsageRecord();
-          unitUsageRecord.setUnitType("kWh");
-          UsageRecord usageRecord =new UsageRecord(DateTime.now().toLocalDate(), (long)(Math.random() * (10 - 1) + 1));
-          unitUsageRecord.setUsageRecords( Arrays.asList(usageRecord));
-          subscriptionUsageRecord.setUnitUsageRecords(Arrays.asList(unitUsageRecord));
-          return subscriptionUsageRecord;
-      }
-         */
     public Response recordUsage(final SubscriptionUsageRecord body, final @NotNull RequestOptions inputOptions) throws KillBillClientException {
         Preconditions.checkNotNull(body, "Missing the required parameter 'body' when calling recordUsage");
         final String uri = "/1.0/kb/usages";
@@ -87,10 +69,12 @@ public class UsageService {
 
     public RolledUpUsage getUsageApi(final UUID accountId, LocalDate startDate, LocalDate endDate) throws KillBillClientException {
         Bundle bundle= accountApi.getAccountBundles(accountId,null,null, apiProperties.getRequestOptions()).get(FIRST_ITEM);//zero to return the first and the only one
-        List<Bundle> bundles= accountApi.getAccountBundles(accountId,null,null, apiProperties.getRequestOptions());
+       // List<Bundle> bundles= accountApi.getAccountBundles(accountId,null,null, apiProperties.getRequestOptions());
         return (bundle==null)? null:usageApi.getUsage(bundle.getSubscriptions().get(FIRST_ITEM).getSubscriptionId(),"kWh",startDate,endDate, apiProperties.getRequestOptions());
     }
-
+    public RolledUpUsage getUsageApiBySubscriptionId(final UUID subscriptionId, LocalDate startDate, LocalDate endDate) throws KillBillClientException {
+        return usageApi.getUsage(subscriptionId,"kWh",startDate,endDate, apiProperties.getRequestOptions());
+    }
    @Scheduled(fixedRate = 180000)
     @Async
     public void pushingUsageRcord() throws KillBillClientException {
@@ -127,12 +111,12 @@ public class UsageService {
 
     }
 
-    public SubscriptionUsageRecord mapUsageRecord(String subId,long time,long amount) {
+    public SubscriptionUsageRecord mapUsageRecord(String subId,DateTime time,long amount) {
         SubscriptionUsageRecord subscriptionUsageRecord = new SubscriptionUsageRecord();
         subscriptionUsageRecord.setSubscriptionId(UUID.fromString(subId));
         UnitUsageRecord unitUsageRecord = new UnitUsageRecord();
         unitUsageRecord.setUnitType("kWh");
-        UsageRecord usageRecord =new UsageRecord(DateTime.now().toLocalDate(), amount);
+        UsageRecord usageRecord =new UsageRecord(time.toLocalDate(), amount);
         unitUsageRecord.setUsageRecords( Arrays.asList(usageRecord));
         subscriptionUsageRecord.setUnitUsageRecords(Arrays.asList(unitUsageRecord));
         return subscriptionUsageRecord;
