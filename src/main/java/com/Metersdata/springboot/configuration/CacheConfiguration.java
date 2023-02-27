@@ -12,7 +12,6 @@ import java.util.Arrays;
 
 @EnableCaching
 @Configuration
-
 public class CacheConfiguration {
 
     @Bean

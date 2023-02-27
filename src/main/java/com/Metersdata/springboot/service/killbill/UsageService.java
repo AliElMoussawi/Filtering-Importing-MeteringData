@@ -16,25 +16,22 @@ import org.killbill.billing.client.KillBillHttpClient;
 import org.killbill.billing.client.RequestOptions;
 import org.killbill.billing.client.api.gen.AccountApi;
 import org.killbill.billing.client.api.gen.UsageApi;
-import org.killbill.billing.client.model.Bundles;
 import org.killbill.billing.client.model.gen.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.killbill.billing.client.api.gen.InvoiceApi;
 
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class UsageService {
     private static final Logger log =  LogManager.getLogger(UsageService.class);
-
     private final KillBillHttpClient killBillClient;
     private final KillBillApiProperties apiProperties;
-
     private final Executor executor;
     @Autowired
     BundleService bundleService;
@@ -54,7 +51,6 @@ public class UsageService {
         usageApi= new UsageApi(killBillClient);
         accountApi=new AccountApi(killBillClient);
     }
-
     public Response recordUsage(final SubscriptionUsageRecord body, final @NotNull RequestOptions inputOptions) throws KillBillClientException {
         Preconditions.checkNotNull(body, "Missing the required parameter 'body' when calling recordUsage");
         final String uri = "/1.0/kb/usages";
@@ -66,51 +62,10 @@ public class UsageService {
         final RequestOptions requestOptions = inputOptionsBuilder.build();
        return killBillClient.doPost(uri, body, requestOptions);
     }
-
-    public RolledUpUsage getUsageApi(final UUID accountId, LocalDate startDate, LocalDate endDate) throws KillBillClientException {
-        Bundle bundle= accountApi.getAccountBundles(accountId,null,null, apiProperties.getRequestOptions()).get(FIRST_ITEM);//zero to return the first and the only one
-       // List<Bundle> bundles= accountApi.getAccountBundles(accountId,null,null, apiProperties.getRequestOptions());
-        return (bundle==null)? null:usageApi.getUsage(bundle.getSubscriptions().get(FIRST_ITEM).getSubscriptionId(),"kWh",startDate,endDate, apiProperties.getRequestOptions());
-    }
     public RolledUpUsage getUsageApiBySubscriptionId(final UUID subscriptionId, LocalDate startDate, LocalDate endDate) throws KillBillClientException {
         return usageApi.getUsage(subscriptionId,"kWh",startDate,endDate, apiProperties.getRequestOptions());
     }
-   @Scheduled(fixedRate = 180000)
     @Async
-    public void pushingUsageRcord() throws KillBillClientException {
-        Map<String,UUID> externalKeySubscriptionId = bundleService.getExternalKeySubscription();
-        Map<String, Integer> retryAttempts = new HashMap<>();
-        for (String externalKey:externalKeySubscriptionId.keySet()) {
-
-            executor.execute(() -> {
-                int retries = 0;
-                retryAttempts.getOrDefault(externalKey, 0);
-                while (retries < MAX_RETRIES) {
-
-                    try {
-                        retryAttempts.put(externalKey, retries + 1);
-                        pushUsageRecord(externalKey);
-
-
-                        break;
-                    } catch (Exception e) {
-                        retries++;
-                        log.error("Error pushing smart meter data: " +externalKey + ". Retrying...", e);
-                        try {
-                            TimeUnit.SECONDS.sleep(RETRY_INTERVAL_SECONDS);
-                        } catch (InterruptedException ie) {
-                            log.error("Interrupted while sleeping between retries.", ie);
-                        }
-                    }
-                }
-                if (retries == MAX_RETRIES) {
-                    log.error("Failed to push the usage record: " + externalKey + " after " + MAX_RETRIES + " retries.");
-                }
-            });
-        }
-
-    }
-
     public SubscriptionUsageRecord mapUsageRecord(String subId,DateTime time,long amount) {
         SubscriptionUsageRecord subscriptionUsageRecord = new SubscriptionUsageRecord();
         subscriptionUsageRecord.setSubscriptionId(UUID.fromString(subId));
@@ -121,20 +76,43 @@ public class UsageService {
         subscriptionUsageRecord.setUnitUsageRecords(Arrays.asList(unitUsageRecord));
         return subscriptionUsageRecord;
     }
-    public void pushUsageRecord(String externalKey) throws KillBillClientException {
-        List<MeteringData> smartMeterRecords = meteringDataService.returnByMeterId(externalKey);
-       String subscriptionId=""+bundleService.getExternalKeySubscription(externalKey);
+    @Scheduled(fixedRate = 180000)
+    @Async
+    public void pushingUsageRcord() throws KillBillClientException {
+        Map<String, UUID> externalKeySubscriptionId = bundleService.getExternalKeySubscription();
+        Map<String, Integer> retryAttempts = new HashMap<>();
+        List<String> externalKey = externalKeySubscriptionId.keySet().stream().collect(Collectors.toList());
+        List<MeteringData> smartMeterRecords = meteringDataService.returnMeteringData(externalKey);
+        if(smartMeterRecords.size()>0){
+        List<MeteringData> retrievedMeteringData = pushUsageRecordKillBill(externalKeySubscriptionId, smartMeterRecords);
+        meteringDataService.updateMeteringData(retrievedMeteringData);}}
+    @Async
+    public List<MeteringData> pushUsageRecordKillBill(Map<String,UUID> externalKeySubscriptionIds,List<MeteringData> smartMeterRecords) throws KillBillClientException {
+        List<MeteringData> retrievedMeteringData=new ArrayList<>();
+        Map<String, Integer> retryAttempts = new HashMap<>();
         for (MeteringData meteringRecord: smartMeterRecords) {
-            SubscriptionUsageRecord subscriptionUsageRecord = mapUsageRecord(subscriptionId,meteringRecord.getProcessTime(), (long) meteringRecord.getEnergyTotal());
-            Response response= recordUsage(subscriptionUsageRecord, apiProperties.getRequestOptions());
-            System.out.println("response status: "+response.getStatusCode());
-            if (response.getStatusCode()==201){
-                meteringRecord.setRetrieved(true);
-                meteringDataRepository.save(meteringRecord);
-            }
-        }
+            executor.execute(() -> {
+                int retries = 0;
+                retryAttempts.getOrDefault(meteringRecord.getSmartMeterId(), 0);
+                while (retries < MAX_RETRIES) {
+                    try {
+                        retryAttempts.put(meteringRecord.getSmartMeterId(), retries + 1);
+                        SubscriptionUsageRecord subscriptionUsageRecord = mapUsageRecord("" + externalKeySubscriptionIds.get(meteringRecord.getSmartMeterId()), meteringRecord.getProcessTime(), (long) meteringRecord.getEnergyTotal());
+                        Response response = recordUsage(subscriptionUsageRecord, apiProperties.getRequestOptions());
+                        System.out.println("response status: " + response.getStatusCode());
+                        if (response.getStatusCode() == 201) {
+                            System.out.println("status:200");
+                            meteringRecord.setRetrieved(true);
+                            retrievedMeteringData.add(meteringRecord);}
+                        break;
+                    } catch (Exception e) {
+                        retries++;
+                        log.error("Error pushing smart meter data: " + meteringRecord.getSmartMeterId() + ". Retrying...", e);
+                        try {TimeUnit.SECONDS.sleep(RETRY_INTERVAL_SECONDS);
+                        } catch (InterruptedException ie) {
+                            log.error("Interrupted while sleeping between retries.", ie);
+                        }}}});
+    }
+            return retrievedMeteringData;
     }
 }
-
-
-

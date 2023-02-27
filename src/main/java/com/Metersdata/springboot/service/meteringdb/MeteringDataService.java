@@ -14,10 +14,14 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
+import javax.swing.text.html.Option;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class MeteringDataService {
@@ -36,7 +40,8 @@ public class MeteringDataService {
         this.executor = executor;
     }
 
-     // Create dummy data for a smart meter with the given ID.
+     // simulate metering data for the given Id.
+    @Async
     public MeteringData createDummyDataForSmartMeter(String id)throws Exception{
         EnergyConsumptionGenerator energyConsumptionGenerator=new EnergyConsumptionGenerator();
         SmartMeter smartMeter=new SmartMeter(UUID.randomUUID(),energyConsumptionGenerator.generateData(id));
@@ -56,17 +61,15 @@ public class MeteringDataService {
 
     // will generate dummy data for each smart meter in parallel with handling error and retries for the failed requests;
     @Scheduled(fixedRate = 120000)
-   @Async
+    @Async
     public void createMeteringData(){
         List<String> smartMeterIds = findAllSmartMeterIds();
         Map<String, Integer> retryAttempts = new HashMap<>();
-
         for (String id : smartMeterIds) {
             executor.execute(() -> {
                 int retries = 0;
                 retryAttempts.getOrDefault(id, 0);
                 while (retries < MAX_RETRIES) {
-
                     try {
                         retryAttempts.put(id, retries + 1);
                         createDummyDataForSmartMeter(id);
@@ -88,16 +91,12 @@ public class MeteringDataService {
         }
 
     }
-
-    public List<MeteringData> returnByMeterId(String meterId){
-        return meteringDataRepository.findBySmartMeterIdAndRetrievedIsFalse(meterId);
-       // List<UsageRecordKillBill> usageRecordKillBills= usageRecordKillBillRepository.findBySmartMeterEnergyConsumptionDataSmartMeterId(meterId);
-       // return allSmartMeterData.stream()
-         //       .filter(smartMeter -> usageRecordKillBills.stream().noneMatch(record -> (record.getSmartMeter().getEnergyConsumptionData().getSmartMeterId()).equals(smartMeter.getSmartMeterId())))
-           //     .collect(Collectors.toList());
+    //to check the latency
+    public List<MeteringData> returnMeteringData(List<String> meterIds){
+        return meteringDataRepository.findAllByRetrievedIsFalseAndSmartMeterIdIn(meterIds);
     }
+    @Async
     public MeteringData insertMeteringData(SmartMeter smartMeter){
-
         MeteringData meteringData=new MeteringData();
         meteringData.setId(UUID.randomUUID());
         meteringData.setSmartMeterId(smartMeter.getEnergyConsumptionData().getSmartMeterId());
@@ -109,7 +108,13 @@ public class MeteringDataService {
         meteringData.setEventTime(new DateTime(smartMeter.getEnergyConsumptionData().getEventTime()));
         meteringData.setProcessTime(new DateTime(smartMeter.getEnergyConsumptionData().getProcessTime()));
         meteringData.setRetrieved(false);
+        System.out.println("simulate data for:"+meteringData.getId());
         return meteringDataRepository.insert(meteringData);
     }
+    @Async
+    public void updateMeteringData(List<MeteringData> retrievedMeteringData){
+        meteringDataRepository.saveAll(retrievedMeteringData);
+        System.out.println("Update database" );}
+    }
 
-}
+

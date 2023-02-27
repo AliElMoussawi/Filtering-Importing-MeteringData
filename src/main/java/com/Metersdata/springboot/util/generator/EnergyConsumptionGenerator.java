@@ -16,7 +16,7 @@ public class EnergyConsumptionGenerator {
     private static final double MIN_FREQUENCY = 59;
     private static final double MAX_FREQUENCY = 61;
     private static final double MIN_ENERGY = 0;
-    private static final double MAX_ENERGY = 20;
+    private static final double MAX_ENERGY = 5;
 
     private final Random random = new Random();
 
