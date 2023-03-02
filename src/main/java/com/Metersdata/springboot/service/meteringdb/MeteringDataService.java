@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 @Service
 public class MeteringDataService {
     private static final Logger log =  LogManager.getLogger(MeteringDataService.class);
-
     final long RETRY_INTERVAL_SECONDS=5;
     final long MAX_RETRIES=6;
     @Autowired
@@ -48,8 +47,10 @@ public class MeteringDataService {
         return insertMeteringData(smartMeter);
     }
     //cache the smart meter ids that exist in the database
-    @Cacheable(value = "SmartMeterDCUCache", cacheManager = "cacheSmartMeterDCUManager")
+    //@Cacheable(value = "SmartMeterDCUCache", cacheManager = "cacheSmartMeterDCUManager")
+    @Cacheable("addresses")
     public List<String> findAllSmartMeterIds(){
+        System.out.println("findAllSmartMeterIds Method is called ");
         List<SmartMeterConcentrator> smartMeterConcentrators =smartMeterConcentratorRepository.findAll();
         List<String> smartMeterIds = new ArrayList<>();
         for (SmartMeterConcentrator concentrator : smartMeterConcentrators) {
@@ -91,9 +92,9 @@ public class MeteringDataService {
         }
 
     }
-    //to check the latency
-    public List<MeteringData> returnMeteringData(List<String> meterIds){
-        return meteringDataRepository.findAllByRetrievedIsFalseAndSmartMeterIdIn(meterIds);
+
+    public List<MeteringData> returnMeteringData(List<String> smartMeterIds){
+        return meteringDataRepository.findAllByRetrievedIsFalseAndSmartMeterIdIn(smartMeterIds);
     }
     @Async
     public MeteringData insertMeteringData(SmartMeter smartMeter){
@@ -108,7 +109,6 @@ public class MeteringDataService {
         meteringData.setEventTime(new DateTime(smartMeter.getEnergyConsumptionData().getEventTime()));
         meteringData.setProcessTime(new DateTime(smartMeter.getEnergyConsumptionData().getProcessTime()));
         meteringData.setRetrieved(false);
-        System.out.println("simulate data for:"+meteringData.getId());
         return meteringDataRepository.insert(meteringData);
     }
     @Async

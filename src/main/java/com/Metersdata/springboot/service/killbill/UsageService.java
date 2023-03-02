@@ -51,6 +51,14 @@ public class UsageService {
         usageApi= new UsageApi(killBillClient);
         accountApi=new AccountApi(killBillClient);
     }
+    /**
+     * Records subscription usage in KillBill system.
+     *
+     * @param body The subscription usage record to be recorded.
+     * @param inputOptions The request options, including followLocation, accept and content-type headers.
+     * @return The HTTP response from the KillBill system.
+     * @throws KillBillClientException if there is an error while sending the HTTP request.
+     */
     public Response recordUsage(final SubscriptionUsageRecord body, final @NotNull RequestOptions inputOptions) throws KillBillClientException {
         Preconditions.checkNotNull(body, "Missing the required parameter 'body' when calling recordUsage");
         final String uri = "/1.0/kb/usages";
@@ -62,32 +70,58 @@ public class UsageService {
         final RequestOptions requestOptions = inputOptionsBuilder.build();
        return killBillClient.doPost(uri, body, requestOptions);
     }
+
+
     public RolledUpUsage getUsageApiBySubscriptionId(final UUID subscriptionId, LocalDate startDate, LocalDate endDate) throws KillBillClientException {
         return usageApi.getUsage(subscriptionId,"kWh",startDate,endDate, apiProperties.getRequestOptions());
     }
+    /**
+     * Maps a subscription ID, event time, and consumed amount to a SubscriptionUsageRecord object.
+     * This method is annotated with @Async to indicate that its executed asynchronously.
+     *
+     * @param subscriptionId the ID of the subscription in KillBill where subscription and Smart Meter have one to one relation
+     * @param eventTime the time of the metering data
+     * @param consumedAmount the amount of the consumed energy
+     * @return a SubscriptionUsageRecord object containing the mapped usage record
+     */@Async// Run this method on a separate thread
+    public SubscriptionUsageRecord mapUsageRecord(String subscriptionId, DateTime eventTime, long consumedAmount) {
+        return new SubscriptionUsageRecord()
+                .setSubscriptionId(UUID.fromString(subscriptionId))
+                .setUnitUsageRecords(Arrays.asList(
+                        new UnitUsageRecord()
+                                .setUnitType("kWh")
+                                .setUsageRecords(Arrays.asList(
+                                        new UsageRecord(eventTime.toLocalDate(), consumedAmount)
+                                ))));}
+
+    /**
+     *  The method pushingUsageRecord() pushes usage records to the KillBill.
+     *  The method first retrieves the external keys (smart meters) and their corresponding subscription IDs from KillBill.
+     *  Based on this data, the method retrieves metering data from database. This data is then pushed in parallel to KillBill.
+     *  Once the data has been successfully pushed, the method marks the corresponding records in the database as retrieved.
+     **/
+    @Scheduled(fixedRate = 180000) // Run this method every 180 seconds
     @Async
-    public SubscriptionUsageRecord mapUsageRecord(String subId,DateTime time,long amount) {
-        SubscriptionUsageRecord subscriptionUsageRecord = new SubscriptionUsageRecord();
-        subscriptionUsageRecord.setSubscriptionId(UUID.fromString(subId));
-        UnitUsageRecord unitUsageRecord = new UnitUsageRecord();
-        unitUsageRecord.setUnitType("kWh");
-        UsageRecord usageRecord =new UsageRecord(time.toLocalDate(), amount);
-        unitUsageRecord.setUsageRecords( Arrays.asList(usageRecord));
-        subscriptionUsageRecord.setUnitUsageRecords(Arrays.asList(unitUsageRecord));
-        return subscriptionUsageRecord;
-    }
-    @Scheduled(fixedRate = 180000)
-    @Async
-    public void pushingUsageRcord() throws KillBillClientException {
-        Map<String, UUID> externalKeySubscriptionId = bundleService.getExternalKeySubscription();
-        Map<String, Integer> retryAttempts = new HashMap<>();
-        List<String> externalKey = externalKeySubscriptionId.keySet().stream().collect(Collectors.toList());
-        List<MeteringData> smartMeterRecords = meteringDataService.returnMeteringData(externalKey);
+    public void pushingUsageRecord() throws KillBillClientException {
+        // Get a map of smart meter IDs (external key) and their corresponding subscription IDs
+        Map<String, UUID> smartMeterAndSubscriptionIds = bundleService.getSmartMeterAndSubscriptionIds();
+        List<String> smartMeterIds = smartMeterAndSubscriptionIds.keySet().stream().collect(Collectors.toList());
+        // Get the metering data that is not retrieved to KillBill and have subscription in KillBill
+        List<MeteringData> smartMeterRecords = meteringDataService.returnMeteringData(smartMeterIds);
         if(smartMeterRecords.size()>0){
-        List<MeteringData> retrievedMeteringData = pushUsageRecordKillBill(externalKeySubscriptionId, smartMeterRecords);
+
+        List<MeteringData> retrievedMeteringData = pushUsageRecordKillBill(smartMeterAndSubscriptionIds, smartMeterRecords);
+        //update the records that successfully pushed to KillBill
         meteringDataService.updateMeteringData(retrievedMeteringData);}}
+    /**
+     * Asynchronously pushes usage records to KillBill for the given smart meter records and subscription IDs.
+     * This message is working concurrently using executor.execute() , with retry mechanism to record that failed to reach KillBill
+     * @param smartMeterSubscriptionIds a map of subscription IDs mapped to their corresponding smart meter IDs
+     * @param smartMeterRecords a list of smart meter records to be pushed to KillBill
+     * @return a list of metering data that was successfully retrieved
+     */
     @Async
-    public List<MeteringData> pushUsageRecordKillBill(Map<String,UUID> externalKeySubscriptionIds,List<MeteringData> smartMeterRecords) throws KillBillClientException {
+    public List<MeteringData> pushUsageRecordKillBill(Map<String,UUID> smartMeterSubscriptionIds,List<MeteringData> smartMeterRecords){
         List<MeteringData> retrievedMeteringData=new ArrayList<>();
         Map<String, Integer> retryAttempts = new HashMap<>();
         for (MeteringData meteringRecord: smartMeterRecords) {
@@ -97,11 +131,10 @@ public class UsageService {
                 while (retries < MAX_RETRIES) {
                     try {
                         retryAttempts.put(meteringRecord.getSmartMeterId(), retries + 1);
-                        SubscriptionUsageRecord subscriptionUsageRecord = mapUsageRecord("" + externalKeySubscriptionIds.get(meteringRecord.getSmartMeterId()), meteringRecord.getProcessTime(), (long) meteringRecord.getEnergyTotal());
+                        SubscriptionUsageRecord subscriptionUsageRecord = mapUsageRecord("" + smartMeterSubscriptionIds.get(meteringRecord.getSmartMeterId()), meteringRecord.getProcessTime(), (long) meteringRecord.getEnergyTotal());
                         Response response = recordUsage(subscriptionUsageRecord, apiProperties.getRequestOptions());
                         System.out.println("response status: " + response.getStatusCode());
                         if (response.getStatusCode() == 201) {
-                            System.out.println("status:200");
                             meteringRecord.setRetrieved(true);
                             retrievedMeteringData.add(meteringRecord);}
                         break;

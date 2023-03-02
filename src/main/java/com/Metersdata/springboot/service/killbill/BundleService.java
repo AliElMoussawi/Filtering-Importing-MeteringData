@@ -24,23 +24,17 @@ public class BundleService {
         bundleApi=new BundleApi(killBillClient);
         this.apiProperties=apiProperties;
     }
-    @Cacheable(cacheNames ="SubscriptionExternalKeyCache" ,  cacheManager ="cacheSubscriptionManager")
-    public  Map<String ,UUID> getExternalKeySubscription() throws KillBillClientException{
+    // get the externalKey of all subscriptions from KillBill
+    // externalKey represents the SmartMeterId
+    @Cacheable(cacheNames ="SubscriptionExternalKeyCache",  cacheManager ="cacheSubscriptionManager")
+    public  Map<String ,UUID> getSmartMeterAndSubscriptionIds() throws KillBillClientException{
+        //external Key == Smart Meter ID
         Map<String ,UUID> externalKeySubscriptionId = new HashMap<>();
-    Bundles bundles =bundleApi.getBundles(apiProperties.getRequestOptions());
-    Iterator<Bundle> bundleList = bundles.iterator();
+    Iterator<Bundle> bundleList = bundleApi.getBundles(apiProperties.getRequestOptions()).iterator();
         while (bundleList.hasNext()) {
-            Bundle bundle =bundleList.next();
-            List<Subscription> subscriptions =bundle.getSubscriptions();
-            for(Subscription subscription:subscriptions) {
+            for(Subscription subscription:bundleList.next().getSubscriptions()) {
                 if(subscription.getCancelledDate()==null){
                 externalKeySubscriptionId.put(subscription.getExternalKey(),subscription.getSubscriptionId());
-            }}
-        }
-        return externalKeySubscriptionId;
-}
-    public UUID getExternalKeySubscription(String externalKey ) throws KillBillClientException {
-        Map<String, UUID> externalKeySubscriptionId = getExternalKeySubscription();
-        return externalKeySubscriptionId.get(externalKey);
-    }
+            }}}
+        return externalKeySubscriptionId;}
     }

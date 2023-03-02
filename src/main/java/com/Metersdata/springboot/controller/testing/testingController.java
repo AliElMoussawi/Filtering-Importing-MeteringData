@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @CrossOrigin
 public class testingController {
     @Autowired
-    MeteringDataService smartMeterService;
+    MeteringDataService  meteringDataService;
     @Autowired
     MeteringDataRepository meteringDataRepository;
     @Autowired
@@ -55,7 +55,12 @@ public class testingController {
         List<String> smartMeterIds = subscriptionsMeterId.values().stream()
                 .map(UUID::toString)
                 .collect(Collectors.toList());
-        List<MeteringData> meteringData =smartMeterService.returnMeteringData(smartMeterIds) ;
+        List<MeteringData> meteringData = meteringDataService.returnMeteringData(smartMeterIds) ;
+        return new ResponseEntity<>(meteringData, HttpStatus.OK);
+    }
+    @RequestMapping(method = RequestMethod.GET, value = "/findAll")
+    public ResponseEntity<List<String>> findAllSmartMeterIds() throws Exception {
+        List<String>meteringData=meteringDataService.findAllSmartMeterIds();
         return new ResponseEntity<>(meteringData, HttpStatus.OK);
     }
 }

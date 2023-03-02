@@ -25,14 +25,6 @@ import java.util.UUID;
 public class UsageController {
     @Autowired
     UsageService usageService;
-
-   // @RequestMapping(method = RequestMethod.POST, value = "/")
-  //  public ResponseEntity< RolledUpUsage> getUsagebyId(@RequestBody UsageRecordRequestDto usageRecordRequest) throws Exception {
-    //    RolledUpUsage usageRecord=usageService.getUsageApi(usageRecordRequest.getAccountId(),usageRecordRequest.getStartDate(),usageRecordRequest.getEndDate());
-      //  return (usageRecord==null)? null: new ResponseEntity<>(usageRecord, HttpStatus.OK);
-    //}
-
-
     @RequestMapping(method = RequestMethod.POST, value = "/")
     public ResponseEntity< RolledUpUsage> getUsagebySubscriptionId(@RequestBody UsageRecordRequestDto usageRecordRequest) throws KillBillClientException {
         RolledUpUsage rolledUpUsage=usageService.getUsageApiBySubscriptionId(usageRecordRequest.getSubscriptionId(),usageRecordRequest.getStartDate(),usageRecordRequest.getEndDate());

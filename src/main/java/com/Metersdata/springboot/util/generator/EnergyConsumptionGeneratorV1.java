@@ -4,9 +4,8 @@ import com.Metersdata.springboot.util.data.EnergyConsumptionData;
 import com.Metersdata.springboot.util.data.EnergyConsumptionMetrics;
 
 import java.util.Random;
-import java.util.UUID;
 
-public class EnergyConsumptionGenerator {
+public class EnergyConsumptionGeneratorV1 {
     private static final int MIN_VOLTAGE = 110;
     private static final int MAX_VOLTAGE = 120;
     private static final double MIN_CURRENT = 0.5;
