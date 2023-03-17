@@ -10,11 +10,11 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
  * Please see the {@link: https://github.com/AliElMoussawi/Filtering-Importing-MeteringData} Repo of the project
  * @author Captain America
  */
- @SpringBootApplication
+@SpringBootApplication
 @EnableScheduling
 @EnableMongoRepositories
 @EnableSwagger2
-@EnableAsync
+@EnableAsync(proxyTargetClass = true)
 public class Application {
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);

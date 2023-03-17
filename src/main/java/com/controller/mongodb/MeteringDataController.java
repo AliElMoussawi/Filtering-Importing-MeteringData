@@ -17,12 +17,10 @@ import java.util.List;
 @RequestMapping("/meteringData")
 @CrossOrigin
 public class MeteringDataController {
-    @Autowired
     MeteringDataService meteringDataService;
-    @Autowired
     MeteringDataRepository meteringDataRepository;
     @RequestMapping(method = RequestMethod.GET, value = "/")
-    public ResponseEntity<List<MeteringData>> getMeteringData() throws Exception {
+    public ResponseEntity<List<MeteringData>> getAllMeteringData() throws Exception {
         return new ResponseEntity<>(meteringDataRepository.findAll(), HttpStatus.OK);
     }
 

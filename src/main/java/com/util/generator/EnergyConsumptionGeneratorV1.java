@@ -2,9 +2,9 @@ package com.util.generator;
 
 import com.util.data.EnergyConsumptionData;
 import com.util.data.EnergyConsumptionMetrics;
+import com.ning.billing.analytics.api.AnalyticsService;
 
 import java.util.Random;
-
 public class EnergyConsumptionGeneratorV1 {
     private static final int MIN_VOLTAGE = 110;
     private static final int MAX_VOLTAGE = 120;

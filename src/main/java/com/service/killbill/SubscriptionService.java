@@ -26,8 +26,4 @@ public class SubscriptionService {
         bundleApi=new BundleApi(killBillClient);
         this.apiProperties=apiProperties;
     }
-    public UUID getSubscriptionbyExternalKey(String externalKey) throws KillBillClientException {
-        Map<String, UUID> stringUUIDMap = bundleService.getSmartMeterAndSubscriptionIds();
-        return stringUUIDMap.get(externalKey);
-    }
 }

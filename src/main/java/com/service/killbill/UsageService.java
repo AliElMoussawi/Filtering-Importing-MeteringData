@@ -19,6 +19,7 @@ import org.killbill.billing.client.api.gen.UsageApi;
 import org.killbill.billing.client.model.gen.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
+@EnableAsync(proxyTargetClass = true)
 public class UsageService {
     private static final Logger log =  LogManager.getLogger(UsageService.class);
     private final KillBillHttpClient killBillClient;
@@ -35,8 +37,6 @@ public class UsageService {
     private final Executor executor;
     @Autowired
     BundleService bundleService;
-    @Autowired
-    MeteringDataRepository meteringDataRepository;
     @Autowired
     MeteringDataService meteringDataService;
     final long RETRY_INTERVAL_SECONDS=5;

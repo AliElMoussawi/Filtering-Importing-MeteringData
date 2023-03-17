@@ -25,6 +25,14 @@ public class AccountService {
         invoiceApi= new InvoiceApi(killBillClient);
         accountApi=new AccountApi(killBillClient);
     }
+
+    /**
+     * Get the subscriptions for the specified account.
+     * Account can have several subscriptions (each subscription represents Smart Meter)
+     * @param accountId is the costumer account in KillBill
+     * @return list of subscription Ids
+     * @throws KillBillClientException
+     */
     public List<UUID> getAccountSubscriptions(UUID accountId) throws KillBillClientException {
         Bundles bundles =accountApi.getAccountBundles(accountId,null,null,apiProperties.getRequestOptions());
         Iterator<Bundle> bundleList = bundles.iterator();
@@ -34,7 +42,13 @@ public class AccountService {
             subscriptionIds.add(bundleList.next().getSubscriptions().get(0).getSubscriptionId());}
         return subscriptionIds;
     }
-
+    /**
+     * Retrieves the invoices for the specified account and returns them as a map of invoice IDs to HTML strings.
+     *
+     * @param accountId the ID of the account to retrieve invoices for
+     * @return a map of invoice IDs to HTML strings for the specified account
+     * @throws KillBillClientException if there is an error retrieving the invoices
+     */
     public Map<UUID,String> getAccountInvoices(UUID accountId) throws KillBillClientException {
         Iterator<Invoice> invoices = accountApi.getInvoicesForAccount(accountId, null, null, Boolean.valueOf(false), Boolean.valueOf(true), Boolean.valueOf(false), AuditLevel.NONE, apiProperties.getRequestOptions()).iterator();
         Map<UUID,String> invoiceHtml=new HashMap<>();
@@ -44,4 +58,6 @@ public class AccountService {
         }
         return invoiceHtml;
     }
+
+
 }

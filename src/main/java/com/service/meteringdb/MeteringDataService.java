@@ -11,6 +11,8 @@ import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -20,22 +22,19 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 @Service
+@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class MeteringDataService {
     private static final Logger log =  LogManager.getLogger(MeteringDataService.class);
     final long RETRY_INTERVAL_SECONDS=5;
     final long MAX_RETRIES=6;
     @Autowired
     MeteringDataConcentratorRepository smartMeterConcentratorRepository;
-
     @Autowired
     MeteringDataRepository meteringDataRepository;
     private final Executor executor;
-
     public MeteringDataService(Executor executor) {
         this.executor = executor;
     }
-
-
     /**
      * Simulate metering data for a given smart meter ID.
      *
@@ -47,9 +46,8 @@ public class MeteringDataService {
         EnergyConsumptionGenerator energyConsumptionGenerator=new EnergyConsumptionGenerator();
         SmartMeter smartMeter=new SmartMeter(UUID.randomUUID(),energyConsumptionGenerator.generateData(smartMeterId));
         return insertMeteringData(smartMeter);
-        }    //@Cacheable("addresses")
-
-    //cache the smart meter ids that exist in the database
+        }
+        //@Cacheable("addresses")
     /**
      * Retrieves a list of all smart meter IDs from the that exist in the database
      * This method is cached using the SmartMeterDCUCache cache manager.
@@ -130,7 +128,6 @@ public class MeteringDataService {
     public void updateMeteringData(List<MeteringData> retrievedMeteringData){
         meteringDataRepository.saveAll(retrievedMeteringData);
         System.out.println("Update database" );}
-
 
 }
 

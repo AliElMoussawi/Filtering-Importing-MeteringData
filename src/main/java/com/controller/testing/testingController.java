@@ -26,11 +26,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/testing")
 @CrossOrigin
 public class testingController {
-    @Autowired
     MeteringDataService  meteringDataService;
-    @Autowired
     MeteringDataRepository meteringDataRepository;
-    @Autowired
     BundleService bundleService;
     @RequestMapping(method = RequestMethod.POST, value = "/t")
     public ResponseEntity<EnergyConsumptionData> createEnergyConcumption(@RequestBody @NotNull requestDto id) throws Exception {
@@ -57,6 +54,7 @@ public class testingController {
         List<MeteringData> meteringData = meteringDataService.returnMeteringData(smartMeterIds) ;
         return new ResponseEntity<>(meteringData, HttpStatus.OK);
     }
+
     @RequestMapping(method = RequestMethod.GET, value = "/findAll")
     public ResponseEntity<List<String>> findAllSmartMeterIds() throws Exception {
         List<String>meteringData=meteringDataService.findAllSmartMeterIds();

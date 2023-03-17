@@ -13,14 +13,14 @@ import org.springframework.context.annotation.Primary;
 import java.util.Arrays;
 
 @Configuration
-@EnableCaching
+@EnableCaching(proxyTargetClass = true)
 public class CacheConfiguration extends CachingConfigurerSupport {
 
     @Bean
     @Primary
     public CacheManager cacheSubscriptionManager() {
         SimpleCacheManager cacheManager = new SimpleCacheManager();
-        cacheManager.setCaches(Arrays.asList(new ConcurrentMapCache("SubscriptionExternalKeyCache")));
+        cacheManager.setCaches(Arrays.asList(new ConcurrentMapCache("SubscriptionSmartMeterCache")));
         return cacheManager;
     }
     @Bean

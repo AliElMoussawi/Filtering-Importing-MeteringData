@@ -9,11 +9,13 @@ import java.util.UUID;
 //for simulator
 @Service
 public class MeteringDataConcentratorService {
-    @Autowired
     MeteringDataConcentratorRepository meteringDataConcentratorRepository;
 
     /**
      * Create a relation between the smart meter and concentrator for the simulator
+     * @param concentratorId
+     * @param smartMeterId
+     * @return The elation record
     */
     public SmartMeterConcentrator createSmartMeterConcentrator(UUID concentratorId, UUID smartMeterId){
         if(meteringDataConcentratorRepository.existsBySmartMeterId(smartMeterId)){

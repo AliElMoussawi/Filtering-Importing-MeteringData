@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class KillBillConfiguration {
+
     @Value("${killbill.url}")
     private String killBillUrl;
     @Value("${killbill.api.Username}")
