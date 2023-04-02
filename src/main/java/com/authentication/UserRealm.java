@@ -2,6 +2,7 @@ package com.authentication;
 
 
 import com.model.User;
+import com.service.shiro.TokenManagerService;
 import com.service.shiro.UserService;
 
 import org.apache.shiro.authc.*;
@@ -28,16 +29,19 @@ public class UserRealm extends AuthorizingRealm {
 
         String username = (String)token.getPrincipal();
 
-       Optional<User> user = userservice.getUserByUsername(username);
+        Optional<User> user = userservice.getUserByUsername(username);
 
         if(user.get()==null) {
             throw new UnknownAccountException("Unknown Account");
         }
-       if(!user.get().isEnabled()) {
-          throw new LockedAccountException("Blocked account");}
+
+        if(!user.get().isEnabled()) {
+            throw new LockedAccountException("Blocked account");
+        }
 
         return new SimpleAuthenticationInfo(user.get().getUsername(), user.get().getPassword(),getName());
     }
+
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
         return new SimpleAuthorizationInfo();

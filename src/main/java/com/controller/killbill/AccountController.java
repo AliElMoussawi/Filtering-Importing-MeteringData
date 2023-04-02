@@ -15,7 +15,6 @@ import java.util.UUID;
 
 @Controller
 @RequestMapping("/account")
-@CrossOrigin
 public class AccountController {
     @Autowired
     AccountService accountService;

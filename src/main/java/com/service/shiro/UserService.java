@@ -26,8 +26,8 @@ public class UserService {
         return Optional.ofNullable(userRepository.findByUsername(username));
     }
 
-    public Optional<String> getCustomerAccountIdByUsername(String username) {
-        return Optional.ofNullable(userRepository.getCustomerAccountIdByUsername(username));
+    public Optional<UUID> getCustomerAccountIdByUsername(String username) {
+        return Optional.ofNullable(userRepository.findByUsername(username).getCustomerAccountId());
     }
     public Optional<User> getById(String id) {
         return userRepository.findById(UUID.fromString(id));

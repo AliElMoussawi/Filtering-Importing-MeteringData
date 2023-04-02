@@ -9,7 +9,6 @@ import org.apache.shiro.authc.credential.DefaultPasswordService;
 import org.apache.shiro.authc.credential.PasswordMatcher;
 import org.apache.shiro.authc.pam.FirstSuccessfulStrategy;
 import org.apache.shiro.authc.pam.ModularRealmAuthenticator;
-import org.apache.shiro.mgt.DefaultSecurityManager;
 import org.apache.shiro.mgt.DefaultSessionStorageEvaluator;
 import org.apache.shiro.mgt.DefaultSubjectDAO;
 import org.apache.shiro.mgt.SessionStorageEvaluator;
@@ -53,7 +52,7 @@ public class ShiroConfig {
 
         Map<String, Filter> filterMap = new HashMap<>();
         // Add custom filter
-        filterMap.put("api", new AuthenticationFilter(null));
+        filterMap.put("api", new AuthenticationFilter());
         factoryBean.setFilters(filterMap);
 
         // Config security manager
@@ -107,5 +106,6 @@ public class ShiroConfig {
         authenticator.setAuthenticationStrategy(new FirstSuccessfulStrategy());
         return authenticator;
     }
+
 }
 

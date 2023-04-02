@@ -3,6 +3,7 @@ package com.dto.shiro;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import org.checkerframework.common.aliasing.qual.Unique;
 import org.springframework.data.annotation.Id;
 
 import javax.validation.constraints.Email;
@@ -20,6 +21,7 @@ public class UserDTO {
 
     @NotNull
     @Size(min = 4, max = 24)
+    @Unique
     @NotBlank(message = "username is mandatory")
     private String username;
     @JsonProperty("firstname")
@@ -31,6 +33,7 @@ public class UserDTO {
     private String password;
 
     @Email
+    @Unique
     @NotNull
     @NotBlank(message = "email is mandatory")
     private String email;
@@ -41,7 +44,7 @@ public class UserDTO {
     private List<GroupRoleDTO> groupRoles;
 
     private String nickname;
-
+    @Unique
     private String mobile;
     @JsonProperty("customerAccountId")
     private String customerAccountId;

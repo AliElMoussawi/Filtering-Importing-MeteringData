@@ -5,7 +5,6 @@ import com.service.killbill.BundleService;
 import com.service.killbill.UsageService;
 import org.killbill.billing.client.KillBillClientException;
 import org.killbill.billing.client.model.gen.RolledUpUsage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -31,7 +30,6 @@ public class UsageController {
 
     //check the analysis plugin that is provided by killbill
     // and then visualize it.
-
     public ResponseEntity<Integer> getAllUsageMonthyBase() throws KillBillClientException {
         Map<String, UUID> smartMeterAndSubscriptionIds = bundleService.getSmartMeterAndSubscriptionIds();
         for(UUID subscriptionId:smartMeterAndSubscriptionIds.values()) {

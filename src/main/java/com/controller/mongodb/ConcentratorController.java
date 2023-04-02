@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
 @RequestMapping("/concentrator")
-@CrossOrigin
 public class ConcentratorController {
     @Autowired
     ConcentratorService concentratorService;

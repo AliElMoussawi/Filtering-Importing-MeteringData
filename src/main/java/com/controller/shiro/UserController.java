@@ -20,14 +20,14 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
-public class UserResource {
+public class UserController {
 
     private final UserService userService;
     private final TokenManagerService tokenManagerService;
     private final DefaultPasswordService passwordservice;
 
 
-    public UserResource(UserService userService, TokenManagerService tokenManagerService, DefaultPasswordService passwordservice) {
+    public UserController(UserService userService, TokenManagerService tokenManagerService, DefaultPasswordService passwordservice) {
         this.userService = userService;
         this.tokenManagerService = tokenManagerService;
         this.passwordservice = passwordservice;
@@ -41,7 +41,7 @@ public class UserResource {
         Map<String,Object> authInfo = new HashMap<String, Object>() {{
             put("token", tokenManagerService.createTokenForUser(userRequest.getUsername()));
         }};
-        UUID customerAccountId=UUID.fromString(userService.getCustomerAccountIdByUsername(userRequest.getUsername()).get());
+        UUID customerAccountId=userService.getCustomerAccountIdByUsername(userRequest.getUsername()).get();
         authInfo.put("customerAccountId",customerAccountId);
         return ResponseEntity.ok(authInfo);
     }
@@ -72,9 +72,6 @@ public class UserResource {
         List<UserDTO> list = userService.getUsers().stream().map(this::copyUserEntityToDto).collect(Collectors.toList());
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
-
-
-
     private UserDTO copyUserEntityToDto(User userEntity) {
         UserDTO userDTO = new UserDTO();
         BeanUtils.copyProperties(userEntity, userDTO);

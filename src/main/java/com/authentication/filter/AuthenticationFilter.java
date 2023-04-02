@@ -5,14 +5,17 @@ import com.authentication.SecurityConstants;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.service.shiro.TokenManagerService;
 import com.util.errorhandler.ErrorResponse;
+import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
-import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
 import org.apache.shiro.web.util.WebUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.apache.commons.lang3.StringUtils;
+
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
@@ -22,34 +25,31 @@ import java.io.IOException;
 @Slf4j
 public class AuthenticationFilter extends AuthenticatingFilter {
 
-
-    private final TokenManagerService tokenManagerService;
-
-    public AuthenticationFilter(TokenManagerService tokenManagerService) {
-        this.tokenManagerService = tokenManagerService;
-    }
-
+    private TokenManagerService tokenManagerService=new TokenManagerService();
     /**
      * Check JWT token
      *
-     * @param servletRequest  request
+     * @param servletRequest request
      * @param servletResponse response
      * @return AuthenticationToken
      */
     @Override
-    protected AuthenticationToken createToken(ServletRequest servletRequest, ServletResponse servletResponse) {
+    protected  JWTAuthToken createToken(ServletRequest servletRequest, ServletResponse servletResponse) {
         HttpServletRequest request = WebUtils.toHttp(servletRequest);
+        System.out.println("create token method is called");
         if (request == null) {
             throw new IllegalArgumentException("Request cannot be empty");
         }
 
         String jwt = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.isBlank(jwt) || !jwt.startsWith(SecurityConstants.TOKEN_PREFIXE)) {
+        if(StringUtils.isBlank(jwt) || !jwt.startsWith(SecurityConstants.TOKEN_PREFIXE)) {
             throw new AuthenticationException("JWT Token is not valid");
         }
-
+        System.out.println("before");
         String token = jwt.replace(SecurityConstants.TOKEN_PREFIXE, "");
-        if (Boolean.TRUE.equals(tokenManagerService.isTokenExpired(token))) {
+        boolean value=tokenManagerService.isTokenExpired(token);
+        System.out.println("JWT Token expiration:"+value);
+        if (Boolean.TRUE.equals(value)) {
             throw new AuthenticationException("JWT Token is Expired :" + token);
         }
 
@@ -69,7 +69,7 @@ public class AuthenticationFilter extends AuthenticatingFilter {
         httpServletResponse.setCharacterEncoding("UTF-8");
         httpServletResponse.setContentType("application/json");
 
-        String error = new ObjectMapper().writeValueAsString(new ErrorResponse(String.valueOf(HttpStatus.UNAUTHORIZED.value()), HttpStatus.UNAUTHORIZED.getReasonPhrase(), "Access Denied"));
+        String error =new ObjectMapper().writeValueAsString(new ErrorResponse(String.valueOf(HttpStatus.UNAUTHORIZED.value()),HttpStatus.UNAUTHORIZED.getReasonPhrase(), "Access Denied"));
         httpServletResponse.getWriter().append(error);
 
         log.error("access Denied url: {}", httpServletRequest.getRequestURI());
@@ -88,13 +88,34 @@ public class AuthenticationFilter extends AuthenticatingFilter {
         }
         boolean allowed = false;
         try {
-            allowed = executeLogin(request, response);
-        } catch (IllegalStateException e) { //not found any token
+            boolean value =executeLogin(request, response);
+            System.out.println(value);
+            allowed = value;
+        } catch (IllegalStateException e) { //no token exists
             log.error("Token Can not be empty", e);
         } catch (Exception e) {
             log.error("Access error", e);
         }
         return allowed || super.isPermissive(mappedValue);
+    }
+    protected boolean executeLogin(ServletRequest request, ServletResponse response) throws Exception {
+        JWTAuthToken token = createToken(request, response);
+        if (token == null) {
+            String msg = "createToken method implementation returned null. A valid non-null AuthenticationToken " +
+                    "must be created in order to execute a login attempt.";
+            throw new IllegalStateException(msg);
+        }
+        try {
+            Subject subject = SecurityUtils.getSubject();// this is the purpose behind the error because its null
+            System.out.println("sasd");
+            System.out.println("subject.getPrincipal():"+subject.getPrincipal());
+            subject.login(token);//here the error
+            System.out.println("sasd");
+            ////here is the problem
+            return onLoginSuccess(token, subject, request, response);
+        } catch (AuthenticationException e) {
+            return onLoginFailure(token, e, request, response);
+        }
     }
 
 }

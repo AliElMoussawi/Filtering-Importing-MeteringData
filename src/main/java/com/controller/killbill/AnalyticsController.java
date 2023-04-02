@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import java.util.List;
 import java.util.Map;
 @Controller
-@RequestMapping("/analytics")
+@RequestMapping("api/user/analytics")
 public class AnalyticsController {
     AnalyticsService analyticsService;
     @RequestMapping(method = RequestMethod.POST, value = "/")
@@ -33,5 +33,9 @@ public class AnalyticsController {
         analyticsRequestDto.setStartDate(new DateTime("2023-01-01"));
         analyticsRequestDto.setEndDate(new DateTime());
         return getUsageByGroup(analyticsRequestDto);
+    }
+    @RequestMapping(method = RequestMethod.GET, value = "/test")
+    public ResponseEntity<String> getTest() throws Exception {
+        return  new ResponseEntity<>("hello world", HttpStatus.OK);
     }
 }
