@@ -2,19 +2,19 @@ package com.authentication.filter;
 
 import com.authentication.JWTAuthToken;
 import com.authentication.SecurityConstants;
+import com.bean.BeanSession;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.service.shiro.TokenManagerService;
 import com.util.errorhandler.ErrorResponse;
-import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
-import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
 import org.apache.shiro.web.util.WebUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -23,9 +23,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Slf4j
+@Component
 public class AuthenticationFilter extends AuthenticatingFilter {
-
+    @Autowired
+    BeanSession beanSession;
     private TokenManagerService tokenManagerService=new TokenManagerService();
+
     /**
      * Check JWT token
      *
@@ -36,7 +39,6 @@ public class AuthenticationFilter extends AuthenticatingFilter {
     @Override
     protected  JWTAuthToken createToken(ServletRequest servletRequest, ServletResponse servletResponse) {
         HttpServletRequest request = WebUtils.toHttp(servletRequest);
-        System.out.println("create token method is called");
         if (request == null) {
             throw new IllegalArgumentException("Request cannot be empty");
         }
@@ -45,14 +47,14 @@ public class AuthenticationFilter extends AuthenticatingFilter {
         if(StringUtils.isBlank(jwt) || !jwt.startsWith(SecurityConstants.TOKEN_PREFIXE)) {
             throw new AuthenticationException("JWT Token is not valid");
         }
-        System.out.println("before");
         String token = jwt.replace(SecurityConstants.TOKEN_PREFIXE, "");
+
         boolean value=tokenManagerService.isTokenExpired(token);
-        System.out.println("JWT Token expiration:"+value);
         if (Boolean.TRUE.equals(value)) {
             throw new AuthenticationException("JWT Token is Expired :" + token);
         }
-
+        tokenManagerService.getCustomerAccountIdFromToken(token);
+        // beanSession.setToken(token);
         return new JWTAuthToken(token);
     }
 
@@ -88,9 +90,8 @@ public class AuthenticationFilter extends AuthenticatingFilter {
         }
         boolean allowed = false;
         try {
-            boolean value =executeLogin(request, response);
-            System.out.println(value);
-            allowed = value;
+
+            allowed = executeLogin(request, response);
         } catch (IllegalStateException e) { //no token exists
             log.error("Token Can not be empty", e);
         } catch (Exception e) {
@@ -99,22 +100,16 @@ public class AuthenticationFilter extends AuthenticatingFilter {
         return allowed || super.isPermissive(mappedValue);
     }
     protected boolean executeLogin(ServletRequest request, ServletResponse response) throws Exception {
-        JWTAuthToken token = createToken(request, response);
-        if (token == null) {
+        try {
+            JWTAuthToken token = createToken(request, response);
+            if (token == null) {
             String msg = "createToken method implementation returned null. A valid non-null AuthenticationToken " +
                     "must be created in order to execute a login attempt.";
             throw new IllegalStateException(msg);
-        }
-        try {
-            Subject subject = SecurityUtils.getSubject();// this is the purpose behind the error because its null
-            System.out.println("sasd");
-            System.out.println("subject.getPrincipal():"+subject.getPrincipal());
-            subject.login(token);//here the error
-            System.out.println("sasd");
-            ////here is the problem
-            return onLoginSuccess(token, subject, request, response);
+            }
+            return true;
         } catch (AuthenticationException e) {
-            return onLoginFailure(token, e, request, response);
+            return false;
         }
     }
 

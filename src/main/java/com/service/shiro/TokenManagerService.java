@@ -39,7 +39,6 @@ public class TokenManagerService {
               .setSubject(value.getUsername())
               .claim("id", value.getId())
               .claim("roles", value.getRoles().stream().map(GroupRole::getCode).collect(Collectors.toList()))
-             // .claim("permissions", getPermissions(value.getRoles()) )
               .claim("customerAccountId",value.getCustomerAccountId())
               .signWith(SignatureAlgorithm.HS256, SecurityConstants.SECRET)
               .compact()).orElse(null);
@@ -58,15 +57,12 @@ public class TokenManagerService {
     }
 
     public Boolean isTokenExpired(String token) {
-        System.out.println("is token expired");
         final Date expiration = getExpirationDateFromToken(token);
-        System.out.println("expiration date :"+expiration.toString());
         return expiration.before(new Date());
     }
 
     public Date getExpirationDateFromToken(String token) {
         Date date=getClaimFromToken(token, Claims::getExpiration);
-        System.out.println("date: "+date.toString());
         return date;
     }
 
@@ -75,7 +71,6 @@ public class TokenManagerService {
         return claimsResolver.apply(claims);
     }
     private Claims getAllClaimsFromToken(String token) {
-        System.out.println("claim from token");
         return Jwts.parser().setSigningKey(SecurityConstants.SECRET).parseClaimsJws(token).getBody();
     }
 
@@ -89,9 +84,8 @@ public class TokenManagerService {
             .setSigningKey(SecurityConstants.SECRET)
             .parseClaimsJws(token)
             .getBody();
-         String customerAccountId= ""+userService.getById((String) claims.get("customerAccountId")).get().getCustomerAccountId();
+        String customerAccountId =claims.get("customerAccountId", String.class);
         return customerAccountId;
-
     }
 
 

@@ -2,14 +2,11 @@ package com.controller.killbill;
 
 import com.dto.killbill.AnalyticsRequestDto;
 import com.dto.killbill.UsageRecordDto;
-import com.service.killbill.AccountService;
 import com.service.killbill.AnalyticsService;
 import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -19,6 +16,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("api/user/analytics")
 public class AnalyticsController {
+
     AnalyticsService analyticsService;
     @RequestMapping(method = RequestMethod.POST, value = "/")
     public ResponseEntity<Map<String, List<UsageRecordDto>>> getUsageByGroup(@RequestBody AnalyticsRequestDto analyticsRequestDto) throws Exception {
