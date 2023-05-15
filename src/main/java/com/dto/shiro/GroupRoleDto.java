@@ -14,7 +14,7 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class GroupRoleDTO {
+public class GroupRoleDto {
 
     private long id;
     

@@ -15,7 +15,7 @@ import java.util.UUID;
 
 
 @Data
-public class UserDTO {
+public class UserDto {
     @Id
     private UUID id;
 
@@ -41,7 +41,7 @@ public class UserDTO {
     private boolean enabled;
 
     @JsonProperty("roles")
-    private List<GroupRoleDTO> groupRoles;
+    private List<GroupRoleDto> groupRoles;
 
     private String nickname;
     @Unique

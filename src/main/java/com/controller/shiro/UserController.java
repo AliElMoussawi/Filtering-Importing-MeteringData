@@ -1,7 +1,7 @@
 package com.controller.shiro;
 
 import com.dto.shiro.LoginRequest;
-import com.dto.shiro.UserDTO;
+import com.dto.shiro.UserDto;
 import com.model.GroupRole;
 import com.model.User;
 import com.service.shiro.TokenManagerService;
@@ -47,7 +47,7 @@ public class UserController {
     }
 
     @PostMapping("/auth/sign-up")
-    public ResponseEntity<User> adduser(@RequestBody UserDTO dto){
+    public ResponseEntity<User> adduser(@RequestBody UserDto dto){
         User user= User.builder()
                 .id(UUID.randomUUID())
                 .username(dto.getUsername()).email(dto.getEmail())
@@ -68,12 +68,12 @@ public class UserController {
 
    // @RequiresPermissions("document:read")
     @GetMapping("/user")
-    public ResponseEntity<List<UserDTO>> getAll() {
-        List<UserDTO> list = userService.getUsers().stream().map(this::copyUserEntityToDto).collect(Collectors.toList());
+    public ResponseEntity<List<UserDto>> getAll() {
+        List<UserDto> list = userService.getUsers().stream().map(this::copyUserEntityToDto).collect(Collectors.toList());
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
-    private UserDTO copyUserEntityToDto(User userEntity) {
-        UserDTO userDTO = new UserDTO();
+    private UserDto copyUserEntityToDto(User userEntity) {
+        UserDto userDTO = new UserDto();
         BeanUtils.copyProperties(userEntity, userDTO);
         return userDTO;
     }
